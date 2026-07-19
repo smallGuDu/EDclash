@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日Clash订阅链接</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://api.illlights.com/v1/img') center/cover no-repeat;
+            filter: blur(4px);
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.15);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.updating {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.idle {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .last-updated {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f5;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stat-item strong {
+            color: #333;
+        }
+
+        .stat-item .source-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 2px;
+        }
+
+        .link-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .link-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f5;
+        }
+
+        .link-list-header h2 {
+            font-size: 18px;
+            color: #1a1a2e;
+        }
+
+        .link-list-header .count {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .link-items {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .link-items::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .link-items::-webkit-scrollbar-track {
+            background: #f0f0f5;
+            border-radius: 3px;
+        }
+
+        .link-items::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .date-group {
+            margin-bottom: 20px;
+        }
+
+        .date-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .date-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            padding: 4px 0;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .link-item:hover {
+            background: #eef0ff;
+        }
+
+        .link-item .link-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .link-item .link-text {
+            font-size: 12px;
+            color: #333;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .link-item .link-text:hover {
+            white-space: normal;
+            overflow: visible;
+        }
+
+        .link-item .link-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .link-item .source-tag {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .source-tag.clashnodes {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .source-tag.freeclashnode {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .source-tag.nodefree {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .source-tag.clashgithub {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .source-tag.oneclash {
+            background: #e0f7fa;
+            color: #00838f;
+        }
+
+        .source-tag.bingoclash {
+            background: #fce4ec;
+            color: #ad1457;
+        }
+
+        .source-tag.mibei77 {
+            background: #f1f8e9;
+            color: #558b2f;
+        }
+
+        .source-tag.v2rayshare {
+            background: #e8eaf6;
+            color: #283593;
+        }
+
+        .source-tag.openclash {
+            background: #fbe9e7;
+            color: #bf360c;
+        }
+
+        .link-item .copy-btn {
+            flex-shrink: 0;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .link-item .copy-btn:hover {
+            background: #5a6fd6;
+        }
+
+        .link-item .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .link-list {
+                padding: 16px;
+            }
+
+            .link-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .link-item .copy-btn {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📡 每日Clash订阅链接</h1>
+            <p>自动从多个免费节点提供商获取每日更新的 .yaml 订阅链接</p>
+            <h3>本站仅提供订阅链接，不保证节点可用性，如果你觉得速度不好可以尝试其他订阅链接或节点</h3>
+            <h3>每个订阅链接可能只能使用1-2天的时间,之后就需要重新点进此网站重复流程</h3>
+            <h3>选择节点时候尽量选择时间靠前的,3天过后的就基本不可用了</h3>
+            <h3>如果你觉得每天都要更新太麻烦了，那么可以考虑购买一个付费订阅 -> <a href="https://congyu.moe/auth/register?invite=3928a34c25" target="_blank">从雨云</a></h3>
+            <h3>梯子下载与使用教程 -> <a href="https://blog.soliar.top/posts/jiaocheng/" target="_blank">点击查看</a></h3>
+            <h3>本站由<a href="https://www.soliar.top" target="_blank">Soliar.</a>制作和维护,链接来自各大网站,侵权请联系删除</h3>
+            <div class="header-controls">
+                <button class="btn btn-primary" onclick="refreshData()" id="refreshBtn">
+                    <span id="refreshIcon">🔄</span>
+                    <span id="refreshText">手动刷新</span>
+                </button>
+                <span class="status-badge idle" id="statusBadge">
+                    <span id="statusDot">●</span>
+                    <span id="statusText">就绪</span>
+                </span>
+                <span class="last-updated" id="lastUpdated">等待更新...</span>
+            </div>
+            <div class="stats-bar" id="statsBar">
+                <span class="stat-item">共 <strong id="totalCount">0</strong> 个订阅链接</span>
+                <span class="stat-item"><span class="source-dot" style="background:#2e7d32"></span> ClashNodes: <strong id="countClashNodes">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#1565c0"></span> FreeClashNode: <strong id="countFreeClashNode">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#e65100"></span> NodeFree: <strong id="countNodeFree">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#6a1b9a"></span> ClashGithub: <strong id="countClashGithub">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#00838f"></span> OneClash: <strong id="countOneClash">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#ad1457"></span> BingoClash: <strong id="countBingoClash">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#558b2f"></span> MiBei77: <strong id="countMiBei77">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#283593"></span> V2rayShare: <strong id="countV2rayShare">0</strong></span>
+                <span class="stat-item"><span class="source-dot" style="background:#bf360c"></span> OpenClash: <strong id="countOpenClash">0</strong></span>
+            </div>
+        </div>
+
+        <div class="link-list" id="linkList">
+            <div class="empty-state" id="loadingState">
+                <div class="icon">⏳</div>
+                <p>正在获取订阅链接，请稍候...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let isUpdating = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            setInterval(checkStatus, 30000);
+        });
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/links');
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderData(result.data, result.lastUpdated);
+                    isUpdating = result.isUpdating;
+                    updateStatus(result.isUpdating, result.lastUpdated);
+                }
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                showError('获取数据失败，请检查网络连接');
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const result = await response.json();
+                
+                if (result.isUpdating !== isUpdating) {
+                    isUpdating = result.isUpdating;
+                    if (!isUpdating) {
+                        fetchData();
+                    }
+                }
+                
+                updateStatus(result.isUpdating, result.lastUpdated);
+            } catch (error) {
+                console.error('检查状态失败:', error);
+            }
+        }
+
+        async function refreshData() {
+            const btn = document.getElementById('refreshBtn');
+            const icon = document.getElementById('refreshIcon');
+            const text = document.getElementById('refreshText');
+            
+            btn.disabled = true;
+            icon.textContent = '⏳';
+            text.textContent = '更新中...';
+            
+            try {
+                const response = await fetch('/api/refresh', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('开始更新订阅链接...');
+                    isUpdating = true;
+                    updateStatus(true, null);
+                    await waitForUpdate();
+                } else {
+                    showToast(result.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('刷新失败:', error);
+                showToast('刷新失败，请稍后重试');
+            } finally {
+                btn.disabled = false;
+                icon.textContent = '🔄';
+                text.textContent = '手动刷新';
+            }
+        }
+
+        async function waitForUpdate() {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch('/api/status');
+                        const result = await response.json();
+                        
+                        if (!result.isUpdating) {
+                            clearInterval(checkInterval);
+                            await fetchData();
+                            showToast('订阅链接更新完成！');
+                            resolve();
+                        }
+                    } catch (error) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 2000);
+            });
+        }
+
+        function renderData(data, lastUpdated) {
+            const container = document.getElementById('linkList');
+            
+            // 更新统计
+            const total = data.length;
+            const sourceNames = ['ClashNodes', 'FreeClashNode', 'NodeFree', 'ClashGithub', 'OneClash', 'BingoClash', 'MiBei77', 'V2rayShare', 'OpenClash'];
+            const countBySource = {};
+            sourceNames.forEach(name => countBySource[name] = 0);
+            data.forEach(item => {
+                if (countBySource[item.source] !== undefined) {
+                    countBySource[item.source]++;
+                }
+            });
+            
+            document.getElementById('totalCount').textContent = total;
+            sourceNames.forEach(name => {
+                const el = document.getElementById('count' + name);
+                if (el) el.textContent = countBySource[name];
+            });
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>暂无数据，请点击"手动刷新"获取订阅链接</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按日期分组
+            const groups = {};
+            data.forEach(item => {
+                const date = item.date || '未知日期';
+                if (!groups[date]) {
+                    groups[date] = [];
+                }
+                groups[date].push(item);
+            });
+            
+            // 日期排序（最新的在前）
+            const sortedDates = Object.keys(groups).sort((a, b) => {
+                if (a === '未知日期') return 1;
+                if (b === '未知日期') return -1;
+                return b.localeCompare(a);
+            });
+            
+            // source name -> CSS class 映射
+            const sourceClassMap = {
+                'ClashNodes': 'clashnodes',
+                'FreeClashNode': 'freeclashnode',
+                'NodeFree': 'nodefree',
+                'ClashGithub': 'clashgithub',
+                'OneClash': 'oneclash',
+                'BingoClash': 'bingoclash',
+                'MiBei77': 'mibei77',
+                'V2rayShare': 'v2rayshare',
+                'OpenClash': 'openclash'
+            };
+            
+            let html = `
+                <div class="link-list-header">
+                    <h2>订阅链接列表</h2>
+                    <span class="count">共 ${total} 个链接</span>
+                </div>
+                <div class="link-items">
+            `;
+            
+            sortedDates.forEach(date => {
+                const items = groups[date];
+                html += `
+                    <div class="date-group">
+                        <div class="date-label">📅 ${date}</div>
+                `;
+                
+                items.forEach((item, index) => {
+                    const sourceClass = sourceClassMap[item.source] || 'nodefree';
+                    html += `
+                        <div class="link-item">
+                            <div class="link-info">
+                                <span class="link-text" title="${item.url}">${item.url}</span>
+                                <div class="link-meta">
+                                    <span class="source-tag ${sourceClass}">${item.source}</span>
+                                </div>
+                            </div>
+                            <button class="copy-btn" onclick="copyLink(this, '${item.url.replace(/'/g, "\\'")}')">复制</button>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function updateStatus(updating, lastUpdated) {
+            const badge = document.getElementById('statusBadge');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const lastUpdatedEl = document.getElementById('lastUpdated');
+            
+            if (updating) {
+                badge.className = 'status-badge updating';
+                dot.innerHTML = '◌';
+                text.textContent = '更新中...';
+            } else {
+                badge.className = 'status-badge idle';
+                dot.innerHTML = '●';
+                text.textContent = '就绪';
+            }
+            
+            if (lastUpdated) {
+                const date = new Date(lastUpdated);
+                const formatted = date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                lastUpdatedEl.textContent = `最后更新: ${formatted}`;
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('linkList');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">❌</div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function copyLink(btn, link) {
+            navigator.clipboard.writeText(link).then(() => {
+                btn.textContent = '已复制 ✓';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '复制';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = link;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                btn.textContent = '已复制 ✓';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '复制';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
